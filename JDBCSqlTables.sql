@@ -6,28 +6,28 @@
 
 CREATE TABLE writingGroup
 (
-  GroupName  VARCHAR(20)    NOT NULL,
-  HeadWriter VARCHAR(20)    NOT NULL,
-  YearFormed INTEGER        NOT NULL,
-  Subject    VARCHAR(20)    NOT NULL,
+  groupName  VARCHAR(20)    NOT NULL,
+  headWriter VARCHAR(20)    NOT NULL,
+  yearFormed INTEGER        NOT NULL,
+  subject    VARCHAR(20)    NOT NULL,
   CONSTRAINT pk_writingGroup PRIMARY KEY (GroupName)
 );
 
 CREATE TABLE book
-  (
-  BookTitle VARCHAR(20) NOT NULL,
-  YearPublished INTEGER NOT NULL,
-  NumberPages   INTEGER NOT NULL,
-  GroupName  VARCHAR(20)    NOT NULL,       /* Foreign Key */
-  PubName VARCHAR(20) NOT NULL,             /* Foreign Key */
+(
+  bookTitle VARCHAR(20) NOT NULL,
+  yearPublished INTEGER NOT NULL,
+  numberPages   INTEGER NOT NULL,
+  groupName  VARCHAR(20)    NOT NULL,       /* Foreign Key */
+  punlisherName VARCHAR(20) NOT NULL,             /* Foreign Key */
   CONSTRAINT pk_book PRIMARY KEY (GroupName, BookTitle)
-  );
+);
 
 CREATE TABLE publishers
 (
-PubName VARCHAR(20) NOT NULL,
-PubAddress  VARCHAR(20) NOT NULL,
-PubPhone    VARCHAR(11) NOT NULL,
-PubEmail    VARCHAR(20) NOT NULL,
-CONSTRAINT pk_publishers PRIMARY KEY (PubName)
+  publisherName VARCHAR(20) NOT NULL,
+  pubAddress  VARCHAR(20) NOT NULL,
+  publisherPhone    VARCHAR(11) NOT NULL,
+  pubEmail    VARCHAR(20) NOT NULL,
+  CONSTRAINT pk_publishers PRIMARY KEY (PublisherName)
 );

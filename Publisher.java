@@ -5,9 +5,6 @@
  */
 package jdbc.ah;
 
-import java.sql.*;
-import java.util.Scanner;
-
 /**
  * @author Alec
  */
