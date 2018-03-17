@@ -16,26 +16,27 @@ CREATE TABLE writingGroup
 CREATE TABLE book
 (
   bookTitle VARCHAR(20) NOT NULL,
-  yearPublished VARCHAR(5) NULL,
-  numberPages   VARCHAR(5) NULL,
+  yearPublished VARCHAR(5) NOT NULL,
+  numberPages   VARCHAR(5) NOT NULL,
   groupName  VARCHAR(20)    NOT NULL,       /* Foreign Key */
-  punlisherName VARCHAR(20) NOT NULL,             /* Foreign Key */
+  pubName VARCHAR(20) NOT NULL,             /* Foreign Key */
   CONSTRAINT pk_book PRIMARY KEY (GroupName, BookTitle)
 );
 
 CREATE TABLE publishers
 (
-  publisherName VARCHAR(20) NOT NULL,
+  pubName VARCHAR(20) NOT NULL,
   pubAddress  VARCHAR(20) NOT NULL,
-  publisherPhone    VARCHAR(20) NOT NULL,
+  pubPhone    VARCHAR(20) NOT NULL,
   pubEmail    VARCHAR(20) NOT NULL,
-  CONSTRAINT pk_publishers PRIMARY KEY (PublisherName)
+  CONSTRAINT pk_publishers PRIMARY KEY (pubName)
 );
 
 INSERT INTO writingGroup VALUES('Gryffindors', 'Harry', '2017', 'Fantasy');
 INSERT INTO writingGroup VALUES('writingLife', 'Tom', '2014', 'Drama');
 
 INSERT INTO publishers VALUES('Steve Smith', '123 Rose St.', '555-555-5555', 'steve@gmail.com');
+INSERT INTO book VALUES('ICodeGood','2015','451','writingLife','Steve Smith');
 
 DROP TABLE writingGroup;
 DROP TABLE book;
