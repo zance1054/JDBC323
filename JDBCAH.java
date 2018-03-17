@@ -8,9 +8,7 @@ import java.util.Scanner;
  * Book Class
  * Purpose: To be used in test file for accessing and mutating values present in the tables
  * Input: N/A
- * OutPut: N/A
- * @author Mimi Opkins with some tweaking from Dave Brown
- *  with more tweaking from Alec and Harvey
+ * OutPut: Alec and Harvey
  */
 
 public class JDBCAH {
@@ -73,7 +71,7 @@ public class JDBCAH {
      * @param whereClauseValue the value to specify the column for
      * @return ResultSet is the databases table information from the query
      */
-    public static ResultSet performQuery(String tableColumns, String tableName, String whereClauseColumn, String whereClauseValue, 
+    public static ResultSet performWhereQuery(String tableColumns, String tableName, String whereClauseColumn, String whereClauseValue, 
             Connection conn, PreparedStatement preStmt) {
         String query = "SELECT " + tableColumns + " FROM " + tableName + " WHERE " + whereClauseColumn + " = ?";
         ResultSet results = null;
@@ -235,12 +233,13 @@ public class JDBCAH {
                         String groupDisplayFormat = displayFormat;
                         groupDisplayFormat = groupDisplayFormat.replaceAll("30", "35");
                         System.out.printf(groupDisplayFormat, "Group Name", "Head Writer", "Year Formed", "Subject");
-                        while (rs.next()) {
+                        while (rs.next()) 
+                        {
                             //Retrieve by column name
-                            String cGroupName = rs.getString("GroupName");
-                            String cHeadWriter = rs.getString("Headwriter");
-                            String cYearFormed = rs.getString("YearFormed");
-                            String cSubject = rs.getString("Subject");
+                            String cGroupName = rs.getString("groupName");
+                            String cHeadWriter = rs.getString("headWriter");
+                            String cYearFormed = rs.getString("yearFormed");
+                            String cSubject = rs.getString("subject");
                             
                                 // Display values
                             System.out.printf(groupDisplayFormat,
@@ -249,21 +248,21 @@ public class JDBCAH {
                         }
                         
                         System.out.println("\nCorresponding books that " + gn + " wrote include: \n"); 
-                        ResultSet bookResults = performQuery("BookTitle, GroupName, PublisherName, YearPublished, NumberPages",
-                                "Books", "GroupName", gn, conn, preStmt);
+                        ResultSet bookdata = performWhereQuery("bookTitle, groupName, pubName, yearPublished, numberPages",
+                                "book", "groupName", gn, conn, preStmt);
                         
                         // Extract data from book result set
                         String bookDisplayFormat = "%-30s" + displayFormat;
                         bookDisplayFormat = bookDisplayFormat.replace("30", "35");
                         System.out.printf(bookDisplayFormat, "Book Title", "Group Name","Publisher Name", 
                                 "Year Published", "Number Pages");
-                        while (bookResults.next()) {
+                        while (bookdata.next()) {
                             // Retrieve by column name
-                            String bookTitle = bookResults.getString("BookTitle");
-                            String groupName = bookResults.getString("GroupName");
-                            String publisherName = bookResults.getString("PublisherName");
-                            String yearPublished = bookResults.getString("YearPublished");
-                            String numberPages = bookResults.getString("NumberPages");
+                            String bookTitle = bookdata.getString("bookTitle");
+                            String groupName = bookdata.getString("groupName");
+                            String publisherName = bookdata.getString("publisherName");
+                            String yearPublished = bookdata.getString("yearPublished");
+                            String numberPages = bookdata.getString("numberPages");
                             
                             // display values
                             System.out.printf(bookDisplayFormat, dispNull(bookTitle), dispNull(groupName), dispNull(publisherName), 
@@ -276,7 +275,7 @@ public class JDBCAH {
                     {
                         stmt = conn.createStatement();
                         String sql;
-                        sql = "SELECT publisherName, pubAddress, publisherPhone, pubEmail FROM publishers";
+                        sql = "SELECT pubName, pubAddress, pubPhone, pubEmail FROM publishers";
                         ResultSet rs = stmt.executeQuery(sql);
                         // display format changed to ensure alignment for columns
                         String publisherDisplayFormat = displayFormat;
@@ -287,9 +286,9 @@ public class JDBCAH {
                                     "Publisher Phone", "Publisher Email");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cPublisherName = rs.getString("publisherName");
+                            String cPublisherName = rs.getString("pubName");
                             String cPublisherAddress = rs.getString("pubAddress");
-                            String cPublisherPhone = rs.getString("publisherPhone");
+                            String cPublisherPhone = rs.getString("pubPhone");
                             String cPublisherEmail = rs.getString("pubEmail");
 
                                 //Display values
@@ -301,11 +300,10 @@ public class JDBCAH {
                     }
                     //List all data of a Publisher (user's input required)
                     case 4:{
-                        System.out.print("Please enter a publisher name you want shown: ");
+                        System.out.print("Enter a publisher name: ");
                         String publisher = reader.nextLine();
-                        System.out.println("Creating statement...\n");
-                        ResultSet rs = performQuery("PublisherName, PublisherAddress, PublisherPhone, PublisherEmail", "Publishers",
-                                "PublisherName", publisher, conn, preStmt);
+                        ResultSet rs = performWhereQuery("pubName,pubAddress, pubPhone, pubEmail", "publishers",
+                                "pubName", publisher, conn, preStmt);
 
                         //STEP 5: Extract data from result set
                         String publisherDisplayFormat = displayFormat;
@@ -314,10 +312,10 @@ public class JDBCAH {
                                     "Publisher Phone", "Publisher Email");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cPublisherName = rs.getString("PublisherName");
-                            String cPublisherAddress = rs.getString("PublisherAddress");
-                            String cPublisherPhone = rs.getString("PublisherPhone");
-                            String cPublisherEmail = rs.getString("PublisherEmail");
+                            String cPublisherName = rs.getString("pubName");
+                            String cPublisherAddress = rs.getString("pubAddress");
+                            String cPublisherPhone = rs.getString("pubPhone");
+                            String cPublisherEmail = rs.getString("pubEmail");
 
                                 //Display values
                             System.out.printf(publisherDisplayFormat,
@@ -326,7 +324,7 @@ public class JDBCAH {
                         }
                         
                         System.out.println("\nCorresponding books that " + publisher + " published include: \n"); 
-                        ResultSet bookResults = performQuery("BookTitle, GroupName, PublisherName, YearPublished, NumberPages", "Books",
+                        ResultSet bookResults = performWhereQuery("bookTitle, groupName, publisherName, yearPublished, numberPages", "book",
                             "publisherName", publisher, conn, preStmt);
                         
                         // Extract data from book result set
@@ -336,14 +334,14 @@ public class JDBCAH {
                                 "Year Published", "Number Pages");
                         while (bookResults.next()) {
                             // Retrieve by column name
-                            String bookTitle = bookResults.getString("BookTitle");
-                            String groupName = bookResults.getString("GroupName");
-                            String publisherName = bookResults.getString("PublisherName");
-                            String yearPublished = bookResults.getString("YearPublished");
-                            String numberPages = bookResults.getString("NumberPages");
+                            String bookTitle = bookResults.getString("bookTitle");
+                            String groupName = bookResults.getString("groupName");
+                            String pubName = bookResults.getString("pubName");
+                            String yearPublished = bookResults.getString("yearPublished");
+                            String numberPages = bookResults.getString("numberPages");
                             
                             // display values
-                            System.out.printf(bookDisplayFormat, dispNull(bookTitle), dispNull(groupName), dispNull(publisherName), 
+                            System.out.printf(bookDisplayFormat, dispNull(bookTitle), dispNull(groupName), dispNull(pubName), 
                                     dispNull(yearPublished), dispNull(numberPages));
                         }
 
@@ -351,19 +349,21 @@ public class JDBCAH {
                     }
                     //List all book titles (Titles Only)
                     case 5:{
-                        System.out.println("Creating statement...\n");
-                        ResultSet rs = performQuery("BookTitle", "Books", conn, stmt);
-                        int bookNumbering = 1;
-
+                        int numBook = 1;
+                        
+                        stmt = conn.createStatement();
+                        String sql;
+                        sql = "SELECT bookTitle FROM book";
+                        ResultSet rs = stmt.executeQuery(sql);
                         //STEP 5: Extract data from result set
                         System.out.println("Book Titles");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cBookTitle = rs.getString("BookTitle");
+                            String cBookTitle = rs.getString("bookTitle");
 
                                 //Display values
-                            System.out.println(bookNumbering + ") " + dispNull(cBookTitle));
-                            bookNumbering++;
+                            System.out.println(numBook + ") " + dispNull(cBookTitle));
+                            numBook++;
                         }
                         break;
                     }
