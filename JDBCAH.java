@@ -17,14 +17,7 @@ public class JDBCAH {
     static String USER;
     static String PASS;
     static String DBNAME;
-    //This is the specification for the printout that I'm doing:
-    //each % denotes the start of a new field.
-    //The - denotes left justification.
-    //The number indicates how wide to make the field.
-    //The "s" denotes that it's a string.  All of our output in this test are
-    //strings, but that won't always be the case.
     static final String displayFormat="%-30s%-30s%-30s%-30s + \n";
-    // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/";
 
@@ -37,7 +30,7 @@ public class JDBCAH {
             return input;
     }
     
-   
+   /* reorganizes the SQL statements to be executed*/
     public static ResultSet performQuery(String tableColumns, String tableName, Connection conn, Statement stmt) {
         String query = "SELECT " + tableColumns + " FROM " + tableName;
         ResultSet results = null;
@@ -51,7 +44,7 @@ public class JDBCAH {
         return results;
     }
    
-    
+    /* reorganizes the SQL statements that also have a where clause*/
     public static ResultSet performWhereQuery(String tableColumns, String tableName, String whereClauseColumn, String whereClauseValue, 
             Connection conn, PreparedStatement preStmt) {
         String query = "SELECT " + tableColumns + " FROM " + tableName + " WHERE " + whereClauseColumn + " = ?";
@@ -67,6 +60,7 @@ public class JDBCAH {
         return results;
     }
     
+    /* handles user input within a given max range*/
     public static String getInputWithinRange(String prompt, Scanner reader, int max) {
         boolean inputIsInvalid = true;
         String input = "";
@@ -83,7 +77,7 @@ public class JDBCAH {
         return input;
     }
     
-    /* Takes in range of integers for verification */
+    /* handles user input within a given min - max range*/
     public static int getInputWithinRange(String prompt, Scanner reader, int rangeMin, int rangeMax) {
         boolean inputIsInvalid = true;
         int userNumChoice = -1;
@@ -139,7 +133,7 @@ public class JDBCAH {
             Scanner reader = new Scanner(System.in);
             while(!end){
                 int choice = -1;
-                System.out.println("Please choose the following options\n"
+                System.out.println("Please choose from the following options by entering the corresponding number \n"
                     + "0. Exit\n"
                     + "1. List all Writing Groups\n"
                     + "2. List all Data of a Group (User's input required)\n"
@@ -165,10 +159,7 @@ public class JDBCAH {
                     //List all writing groups
                     case 1:
                     {
-                        stmt = conn.createStatement();
-                        String sql;
-                        sql = "SELECT groupName, headWriter, yearFormed, subject FROM writingGroup";
-                        ResultSet rs = stmt.executeQuery(sql);
+                        ResultSet rs = performQuery("groupName, headWriter, yearFormed, subject", "writingGroup",conn,stmt);
 
                         //STEP 5: Extract data from result set
                         System.out.printf(displayFormat, "Group Name", "Head Writer", "Year Formed", "Subject");
@@ -194,14 +185,7 @@ public class JDBCAH {
                         System.out.print("Please enter a group name you want shown: ");
                         String gn = reader.nextLine();
                       
-
-                        //"groupName, headWriter, yearFormed, subject", "writingGroups", "groupName"
-                        stmt = conn.createStatement();
-                        String sql;
-                        sql = "SELECT groupName, headWriter, yearFormed, FROM writingGroup WHERE groupName = 'gn'";
-                 
-                        System.out.println(sql);
-                        ResultSet rs = stmt.executeQuery(sql);
+                        ResultSet rs = performWhereQuery("groupName, headWriter, yearFormed,subject", "writingGroup","groupName",gn,conn,preStmt);
 
                         //STEP 5: Extract data from result set
                         String groupDisplayFormat = displayFormat;
@@ -234,7 +218,7 @@ public class JDBCAH {
                             // Retrieve by column name
                             String bookTitle = bookdata.getString("bookTitle");
                             String groupName = bookdata.getString("groupName");
-                            String publisherName = bookdata.getString("publisherName");
+                            String publisherName = bookdata.getString("pubName");
                             String yearPublished = bookdata.getString("yearPublished");
                             String numberPages = bookdata.getString("numberPages");
                             
@@ -298,8 +282,8 @@ public class JDBCAH {
                         }
                         
                         System.out.println("\nCorresponding books that " + publisher + " published include: \n"); 
-                        ResultSet bookResults = performWhereQuery("bookTitle, groupName, publisherName, yearPublished, numberPages", "book",
-                            "publisherName", publisher, conn, preStmt);
+                        ResultSet bookResults = performWhereQuery("bookTitle, groupName, pubName, yearPublished, numberPages", "book",
+                            "pubName", publisher, conn, preStmt);
                         
                         // Extract data from book result set
                         String bookDisplayFormat = "%-30s" + displayFormat;
@@ -350,10 +334,10 @@ public class JDBCAH {
 
                         String sql;
                         sql = "SELECT * "
-                                + "FROM Books "
-                                + "NATURAL JOIN WritingGroups "
-                                + "NATURAL JOIN Publishers "
-                                + "WHERE BookTitle = ?";
+                                + "FROM book "
+                                + "NATURAL JOIN writingGroup "
+                                + "NATURAL JOIN publishers "
+                                + "WHERE bookTitle = ?";
                         preStmt = conn.prepareStatement(sql);
                         preStmt.setString(1, bookTitle);
                         ResultSet rs = preStmt.executeQuery();
@@ -364,17 +348,17 @@ public class JDBCAH {
                                 "Head Writer", "Year Formed", "Subject", "Publisher Address", 
                                 "Publisher Phone", "Publisher Email");
                         while (rs.next()){
-                            String bBookTitle = rs.getString("BookTitle");
-                            String bGroupName = rs.getString("GroupName");
-                            String bPublisherName = rs.getString("PublisherName");
-                            String bYearPublished = rs.getString("YearPublished");
-                            String bNumberOfPages = rs.getString("NumberPages");
-                            String bHeadWriter = rs.getString("Headwriter");
-                            String bYearFormed = rs.getString("YearFormed");
-                            String bSubject = rs.getString("Subject");
-                            String bPublisherAddress = rs.getString("PublisherAddress");
-                            String bPublisherPhone = rs.getString("PublisherPhone");
-                            String bPublisherEmail = rs.getString("PublisherEmail");
+                            String bBookTitle = rs.getString("bookTitle");
+                            String bGroupName = rs.getString("groupName");
+                            String bPublisherName = rs.getString("pubName");
+                            String bYearPublished = rs.getString("yearPublished");
+                            String bNumberOfPages = rs.getString("numberPages");
+                            String bHeadWriter = rs.getString("headwriter");
+                            String bYearFormed = rs.getString("yearFormed");
+                            String bSubject = rs.getString("subject");
+                            String bPublisherAddress = rs.getString("pubAddress");
+                            String bPublisherPhone = rs.getString("pubPhone");
+                            String bPublisherEmail = rs.getString("pubEmail");
 
                             System.out.printf(dsplyFrmt, dispNull(bBookTitle), dispNull(bGroupName), dispNull(bPublisherName), 
                                     dispNull(bYearPublished), dispNull(bNumberOfPages), dispNull(bHeadWriter), 
@@ -392,12 +376,12 @@ public class JDBCAH {
                         
                         //Making the UI List for user to specify
                         ArrayList<String> gName = new ArrayList<String>();
-                        ResultSet rsGN = performQuery("GroupName", "WritingGroups", conn, stmt);
+                        ResultSet rsGN = performQuery("groupName", "writingGroup", conn, stmt);
                         int gnNumList = 1;
                         System.out.println("Group Name List:");
                         while(rsGN.next()){
-                            System.out.println(gnNumList + ") " + dispNull(rsGN.getString("GroupName")));
-                            gName.add(rsGN.getString("GroupName"));
+                            System.out.println(gnNumList + ") " + dispNull(rsGN.getString("groupName")));
+                            gName.add(rsGN.getString("groupName"));
                             gnNumList++;
                         }
                                   
@@ -407,12 +391,12 @@ public class JDBCAH {
 
                         //Making the List for Publisher Name
                         ArrayList<String> pName = new ArrayList<String>();
-                        ResultSet rsPN = performQuery("PublisherName", "Publishers", conn, stmt);
+                        ResultSet rsPN = performQuery("pubName", "publishers", conn, stmt);
                         int pnNumList = 1;
                         System.out.println("Publisher Name List:");
                         while(rsPN.next()){
-                            System.out.println(pnNumList + ") " + dispNull(rsPN.getString("PublisherName")));
-                            pName.add(rsPN.getString("PublisherName"));
+                            System.out.println(pnNumList + ") " + dispNull(rsPN.getString("pubName")));
+                            pName.add(rsPN.getString("pubName"));
                             pnNumList++;
                         }
                         
@@ -420,9 +404,9 @@ public class JDBCAH {
                                 + "Publisher Name from above: ", reader, 1, pName.size());
                         String publisherName = pName.get(pChoiceName - 1);
                         
-                        System.out.println("Creating statement...");
+                       
                         System.out.println("Adding to database...\n");
-                        String sql = "INSERT INTO Books(BookTitle, YearPublished, NumberPages, GroupName, PublisherName) VALUES "
+                        String sql = "INSERT INTO book(bookTitle, yearPublished, numberPages, groupName, pubName) VALUES "
                                 + "(?,?,?,?,?)";
                         preStmt = conn.prepareStatement(sql);
                         preStmt.setString(1, bookTitle);
@@ -440,14 +424,14 @@ public class JDBCAH {
                                         publisherName + "]");
 
                         System.out.println("Here are the books currently:\n");
-                        ResultSet rs = performQuery("BookTitle", "Books", conn, stmt);
+                        ResultSet rs = performQuery("bookTitle", "book", conn, stmt);
 
                         //STEP 5: Extract data from result set
                         int bookNumbering = 1;
                         System.out.println("Book Titles");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cBookTitle = rs.getString("BookTitle");
+                            String cBookTitle = rs.getString("bookTitle");
 
                                 //Display values
                             System.out.println(bookNumbering + ") " + dispNull(cBookTitle));
@@ -465,12 +449,12 @@ public class JDBCAH {
                         //asks to see the what the publisher should be replaced
                         System.out.println("Below is a list of known Publisher Names.");
                         ArrayList<String> publisherName = new ArrayList<String>();
-                        ResultSet rs = performQuery("PublisherName", "Publishers", conn, stmt);
+                        ResultSet rs = performQuery("pubName", "publishers", conn, stmt);
                         int publisherList = 1;
                         
                         while(rs.next()){
-                            System.out.println(publisherList + ") " + dispNull(rs.getString("PublisherName")));
-                            publisherName.add(rs.getString("PublisherName"));
+                            System.out.println(publisherList + ") " + dispNull(rs.getString("pubName")));
+                            publisherName.add(rs.getString("pubName"));
                             publisherList++;
                         }
                         
@@ -481,7 +465,7 @@ public class JDBCAH {
                         System.out.println("\n");
                         
                         //makes a new tuple
-                        String sqlMakeNew = "INSERT INTO Publishers(publisherName, publisherAddress, publisherPhone, publisherEmail) "
+                        String sqlMakeNew = "INSERT INTO Publishers(pubName, pubAddress, pubPhone, pubEmail) "
                                 + "VALUES (?, ?, ?, ?)";
                         preStmt = conn.prepareStatement(sqlMakeNew);
                         preStmt.setString(1, newPublisher);
@@ -491,21 +475,21 @@ public class JDBCAH {
                         preStmt.executeUpdate();
                         
                         //Go to the child class (Book) to change the publisher indicated to the new insert
-                        String sqlReplaceInBook = "UPDATE Books SET PublisherName = ? "
-                                + "WHERE PublisherName = ?";
+                        String sqlReplaceInBook = "UPDATE book SET pubName = ? "
+                                + "WHERE pubName = ?";
                         preStmt = conn.prepareStatement(sqlReplaceInBook);
                         preStmt.setString(1, newPublisher);
                         preStmt.setString(2, replacedPublisher);
                         preStmt.executeUpdate();
                         
                         //Go back to the parent class (Publisher) to delete the old publisher
-                        String sqlDeleteOldPublisher = "DELETE FROM Publishers WHERE PublisherName = ?";
+                        String sqlDeleteOldPublisher = "DELETE FROM publishers WHERE pubName = ?";
                         preStmt = conn.prepareStatement(sqlDeleteOldPublisher);
                         preStmt.setString(1, replacedPublisher);
                         preStmt.executeUpdate();
                         
                         //Print out the book list
-                        ResultSet bookSet = performQuery("BookTitle, GroupName, PublisherName, YearPublished, NumberPages", "Books", conn, stmt);
+                        ResultSet bookSet = performQuery("bookTitle, groupName, pubName, yearPublished, numberPages", "book", conn, stmt);
                         System.out.printf("%-40s%-40s\n", "Book Title", "Publisher Name");
                         while (bookSet.next()) {
                             System.out.printf("%-40s%-40s\n", dispNull(bookSet.getString("BookTitle")), dispNull(bookSet.getString("PublisherName")) );
@@ -514,17 +498,17 @@ public class JDBCAH {
                         System.out.println("\n");
                         
                         //Print out the publisher list
-                        rs = performQuery("PublisherName, PublisherAddress,PublisherPhone, PublisherEmail", "Publishers", conn, stmt);
+                        rs = performQuery("pubName, pubAddress,pubPhone, pubEmail", "publishers", conn, stmt);
                         String publisherDisplayFormat = displayFormat;
                         publisherDisplayFormat = publisherDisplayFormat.replaceAll("30", "40");
                         System.out.printf(publisherDisplayFormat, "Publisher Name", "Publisher Address", 
                                     "Publisher Phone", "Publisher Email");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cPublisherName = rs.getString("PublisherName");
-                            String cPublisherAddress = rs.getString("PublisherAddress");
-                            String cPublisherPhone = rs.getString("PublisherPhone");
-                            String cPublisherEmail = rs.getString("PublisherEmail");
+                            String cPublisherName = rs.getString("pubName");
+                            String cPublisherAddress = rs.getString("pubAddress");
+                            String cPublisherPhone = rs.getString("pubPhone");
+                            String cPublisherEmail = rs.getString("pubEmail");
 
                                 //Display values
                             System.out.printf(publisherDisplayFormat,
@@ -535,34 +519,34 @@ public class JDBCAH {
                     }
                     //remove a book
                     case 9:{
-                        System.out.println("Here are the books currently:\n");
+                        System.out.println("All books:\n");
                         ArrayList<String> bookName = new ArrayList<String>();
-                        ResultSet rs = performQuery("BookTitle", "Books", conn, stmt);
+                        ResultSet rs = performQuery("bookTitle", "book", conn, stmt);
                         int bookNumList = 1;
                         System.out.println("Book Title List:");
                         while(rs.next()){
-                            System.out.println(bookNumList + ") " + dispNull(rs.getString("BookTitle")));
-                            bookName.add(rs.getString("BookTitle"));
+                            System.out.println(bookNumList + ") " + dispNull(rs.getString("bookTitle")));
+                            bookName.add(rs.getString("bookTitle"));
                             bookNumList++;
                         }
 
                         int bookChoice = getInputWithinRange("\n\nPlease input the Book number to remove: ", reader, 1, bookNumList - 1);
                         String bookTitle = bookName.get(bookChoice - 1);
                         
-                        String sql = "DELETE FROM Books WHERE BookTitle = ?";
+                        String sql = "DELETE FROM book WHERE bookTitle = ?";
                         preStmt = conn.prepareStatement(sql);
                         preStmt.setString(1, bookTitle);
                         preStmt.executeUpdate();
 
-                        System.out.println("Here are the books currently after the delete:\n");
-                        rs = performQuery("BookTitle", "Books", conn, stmt);
+                        System.out.println("Remaining Books :\n");
+                        rs = performQuery("bookTitle", "book", conn, stmt);
 
                         //STEP 5: Extract data from result set
                         System.out.println("Book Title");
                         bookNumList = 1;
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cBookTitle = rs.getString("BookTitle");
+                            String cBookTitle = rs.getString("bookTitle");
 
                                 //Display values
                             System.out.println(bookNumList + ") " + dispNull(cBookTitle));
