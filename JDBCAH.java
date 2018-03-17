@@ -7,8 +7,9 @@ import java.util.Scanner;
  * JDBC Project
  * Book Class
  * Purpose: To be used in test file for accessing and mutating values present in the tables
- * Input: N/A
- * OutPut: Alec and Harvey
+ * Input: User requests info from the database
+ * OutPut: Database Info
+ * @author Alec and Harvey
  */
 
 public class JDBCAH {
@@ -22,33 +23,21 @@ public class JDBCAH {
     //The number indicates how wide to make the field.
     //The "s" denotes that it's a string.  All of our output in this test are
     //strings, but that won't always be the case.
-    static final String displayFormat="%-30s%-30s%-30s%-30s\n";
-// JDBC driver name and database URL
+    static final String displayFormat="%-30s%-30s%-30s%-30s + \n";
+    // JDBC driver name and database URL
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/";
-//            + "testdb;user=";
-/**
- * Takes the input string and outputs "N/A" if the string is empty or null.
- * @param input The string to be mapped.
- * @return  Either the input string or "N/A" as appropriate.
- */
-    public static String dispNull (String input) {
-        //because of short circuiting, if it's null, it never checks the length.
+
+    /* Handles null values in database*/
+    public static String dispNull (String input) 
+    {
         if (input == null || input.length() == 0)
             return "N/A";
         else
             return input;
     }
     
-    /**
-     * Use SQL statement to retrieve specified table information
-     * in ResultSet with no user input required.
-     * @param tableColumns String of attributes to query the table
-     * @param tableName String of the table name to perform query on
-     * @param conn Connection to the database
-     * @param stmt Statement that creates and executes the query
-     * @return ResultSet is the databases table information from the query
-     */
+   
     public static ResultSet performQuery(String tableColumns, String tableName, Connection conn, Statement stmt) {
         String query = "SELECT " + tableColumns + " FROM " + tableName;
         ResultSet results = null;
@@ -61,16 +50,8 @@ public class JDBCAH {
         }     
         return results;
     }
+   
     
-     /**
-     * Use SQL prepared statements to retrieve specified table information
-     * in ResultSet as specified with WHERE clause when user input is required.
-     * @param tableColumns SQL query statement to execute on database
-     * @param tableName String of the table name to perform query on
-     * @param whereClauseColumn Column to perform WHERE clause on
-     * @param whereClauseValue the value to specify the column for
-     * @return ResultSet is the databases table information from the query
-     */
     public static ResultSet performWhereQuery(String tableColumns, String tableName, String whereClauseColumn, String whereClauseValue, 
             Connection conn, PreparedStatement preStmt) {
         String query = "SELECT " + tableColumns + " FROM " + tableName + " WHERE " + whereClauseColumn + " = ?";
@@ -102,14 +83,7 @@ public class JDBCAH {
         return input;
     }
     
-    /**
-     * Takes in range of integers to ensure input validation.
-     * @prompt String to output to user for context of their input
-     * @reader Scanner object used to accept user input from command line
-     * @rangeMin integer value of minimum that is valid
-     * @rangeMax integer value of maximum that is valid
-     * @return user input that is a valid integer within the specified range
-     */
+    /* Takes in range of integers for verification */
     public static int getInputWithinRange(String prompt, Scanner reader, int rangeMin, int rangeMax) {
         boolean inputIsInvalid = true;
         int userNumChoice = -1;
