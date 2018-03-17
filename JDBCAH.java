@@ -1,15 +1,18 @@
 package jdbc.ah;
-
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
-
 /**
- *
+ * CECS 323 Opkins
+ * JDBC Project
+ * Book Class
+ * Purpose: To be used in test file for accessing and mutating values present in the tables
+ * Input: N/A
+ * OutPut: N/A
  * @author Mimi Opkins with some tweaking from Dave Brown
- * and more tweaking from Alec and Harvey
+ *  with more tweaking from Alec and Harvey
  */
+
 public class JDBCAH {
     //  Database credentials
     static String USER;
@@ -178,26 +181,32 @@ public class JDBCAH {
                 
                 choice = getInputWithinRange("Enter a number from 0 - 9: ", reader, 0, 9);
 
-                switch(choice){
+                switch(choice)
+                {
                     //exits
-                    case 0:{
+                    case 0:
+                    {
                         end = true;
                         break;
                     }
+                    
                     //List all writing groups
-                    case 1:{
-                        System.out.println("Creating statement...\n");
-                        
-                        ResultSet rs = performQuery("GroupName, Headwriter, YearFormed, Subject", "WritingGroups", conn, stmt);
+                    case 1:
+                    {
+                        stmt = conn.createStatement();
+                        String sql;
+                        sql = "SELECT groupName, headWriter, yearFormed, subject FROM writingGroup";
+                        ResultSet rs = stmt.executeQuery(sql);
 
                         //STEP 5: Extract data from result set
                         System.out.printf(displayFormat, "Group Name", "Head Writer", "Year Formed", "Subject");
-                        while (rs.next()) {
+                        while (rs.next()) 
+                        {
                             //Retrieve by column name
-                            String cGroupName = rs.getString("GroupName");
-                            String cHeadWriter = rs.getString("Headwriter");
-                            String cYearFormed = rs.getString("YearFormed");
-                            String cSubject = rs.getString("Subject");
+                            String cGroupName = rs.getString("groupName");
+                            String cHeadWriter = rs.getString("headWriter");
+                            String cYearFormed = rs.getString("yearFormed");
+                            String cSubject = rs.getString("subject");
 
                             //Display values
                             System.out.printf(displayFormat,
@@ -206,13 +215,21 @@ public class JDBCAH {
                         }
                         break;
                     }
+                    
                     //list all data of a group (User's input required)
-                    case 2:{
+                    case 2:
+                    {
                         System.out.print("Please enter a group name you want shown: ");
                         String gn = reader.nextLine();
+                      
 
-                        System.out.println("Creating statement...\n");
-                        ResultSet rs = performQuery("GroupName, Headwriter, YearFormed, Subject", "WritingGroups", "GroupName", gn, conn, preStmt);
+                        //"groupName, headWriter, yearFormed, subject", "writingGroups", "groupName"
+                        stmt = conn.createStatement();
+                        String sql;
+                        sql = "SELECT groupName, headWriter, yearFormed, FROM writingGroup WHERE groupName = 'gn'";
+                 
+                        System.out.println(sql);
+                        ResultSet rs = stmt.executeQuery(sql);
 
                         //STEP 5: Extract data from result set
                         String groupDisplayFormat = displayFormat;
@@ -255,11 +272,12 @@ public class JDBCAH {
                         break;
                     }
                     //List all publishers
-                    case 3:{
-                        System.out.println("Creating statement...\n");
-                        ResultSet rs = performQuery("PublisherName, PublisherAddress, PublisherPhone, PublisherEmail",
-                                "Publishers", conn, stmt);
-                        
+                    case 3:
+                    {
+                        stmt = conn.createStatement();
+                        String sql;
+                        sql = "SELECT publisherName, pubAddress, publisherPhone, pubEmail FROM publishers";
+                        ResultSet rs = stmt.executeQuery(sql);
                         // display format changed to ensure alignment for columns
                         String publisherDisplayFormat = displayFormat;
                         publisherDisplayFormat = publisherDisplayFormat.replaceAll("30", "35");
@@ -269,10 +287,10 @@ public class JDBCAH {
                                     "Publisher Phone", "Publisher Email");
                         while (rs.next()) {
                             //Retrieve by column name
-                            String cPublisherName = rs.getString("PublisherName");
-                            String cPublisherAddress = rs.getString("PublisherAddress");
-                            String cPublisherPhone = rs.getString("PublisherPhone");
-                            String cPublisherEmail = rs.getString("PublisherEmail");
+                            String cPublisherName = rs.getString("publisherName");
+                            String cPublisherAddress = rs.getString("pubAddress");
+                            String cPublisherPhone = rs.getString("publisherPhone");
+                            String cPublisherEmail = rs.getString("pubEmail");
 
                                 //Display values
                             System.out.printf(publisherDisplayFormat,
@@ -589,8 +607,8 @@ public class JDBCAH {
             
             //STEP 6: Clean-up environment
             
-            //stmt.close();
-            //conn.close();
+            stmt.close();
+            conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
             se.printStackTrace();
