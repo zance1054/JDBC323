@@ -99,7 +99,28 @@ public class JDBCAH {
         }    
         return userNumChoice;
     } 
-  
+    /* handles user input within a given min - max length range*/
+    public static String getInputWithinLengthRange(String prompt, Scanner reader, int rangeMin, int rangeMax) {
+        boolean inputIsInvalid = true;
+        String userNumChoice = "";
+        
+        while (inputIsInvalid) {
+            try {
+                System.out.print(prompt);
+                userNumChoice = reader.nextLine();
+                
+                if (userNumChoice.length() < rangeMin || userNumChoice.length() > rangeMax) {
+                    throw new Exception("Invalid input out of range");
+                }
+                inputIsInvalid = false;
+            } catch (Exception ex) {
+                System.out.println("Please enter an integer within the range of " + rangeMin +
+                        " and " + rangeMax + ":");
+            } 
+            reader.nextLine();
+        }    
+        return userNumChoice;
+    } 
 
     public static void main(String[] args) {
         //Prompt the user for the database name, and the credentials.
@@ -443,7 +464,7 @@ public class JDBCAH {
                     case 8:{
                         String newPublisher = getInputWithinRange("Enter in a new Publisher: ", reader, 60);
                         String newPublisherAddress = getInputWithinRange("Enter the new Publisher's address: ", reader, 80);
-                        String newPublisherPhone = Integer.toString( getInputWithinRange("Enter the new Publisher's phone number: ", reader, 10, 10) );
+                        String newPublisherPhone = getInputWithinLengthRange("Enter the new Publisher's phone number: ", reader, 10, 12) ;
                         String newPublisherEmail = getInputWithinRange("Enter the new Publisher's email: ", reader, 80);
                         
                         //asks to see the what the publisher should be replaced
