@@ -21,7 +21,7 @@ public class JDBCAH {
     static String USER;
     static String PASS;
     static String DBNAME;
-    static final String displayFormat="%-30s%-30s%-30s%-30s + \n";
+    static final String displayFormat= "%-30s%-30s%-30s%-30s%";
     static final String JDBC_DRIVER = "org.apache.derby.jdbc.ClientDriver";
     static String DB_URL = "jdbc:derby://localhost:1527/";
 
@@ -50,16 +50,19 @@ public class JDBCAH {
    
     /* reorganizes the SQL statements that also have a where clause*/
     public static ResultSet performWhereQuery(String tableColumns, String tableName, String whereClauseColumn, String whereClauseValue, 
-            Connection conn, PreparedStatement preStmt) {
+            Connection conn, PreparedStatement preStmt) 
+    {
         String query = "SELECT " + tableColumns + " FROM " + tableName + " WHERE " + whereClauseColumn + " = ?";
-        System.out.println(query);
         ResultSet results = null;
         
-        try {
+        try 
+        {
             preStmt = conn.prepareStatement(query);
             preStmt.setString(1, whereClauseValue);
             results = preStmt.executeQuery();
-        } catch(Exception ex) {
+        }
+        catch(Exception ex) 
+        {
             System.out.println("Unable to perform query '" + query + "'.");
         }
         return results;
@@ -68,9 +71,9 @@ public class JDBCAH {
     public static void listall(String category, String tableColumns, Connection conn, Statement stmt) throws SQLException
     {
         List<String> list = new ArrayList<String>(Arrays.asList(tableColumns.split(",")));
-        
-        
         ResultSet rs = performQuery(tableColumns,category,conn,stmt);
+        
+        String display = "%-30s%-30s\n";
         
         while(rs.next())
         {
@@ -84,14 +87,34 @@ public class JDBCAH {
 
             for(int j = 0; j < values.size(); j++)
             {
-                System.out.println( list.get(j) + ": "+ dispNull(values.get(j)));
+                System.out.printf(display,list.get(j),dispNull(values.get(j)));
             }
         }
     }
     
-    public static void listalldata(String category, String tableColumns, Connection conn, Statement stmt) throws SQLException
+    public static void listalldata(String category, String tableColumns, Connection conn, 
+            PreparedStatement preStmt, String WhereClauseColumn,String WhereClauseValue, String displayformat) throws SQLException
     {
+        List<String> list = new ArrayList<String>(Arrays.asList(tableColumns.split(",")));
         
+        ResultSet rs = performWhereQuery(tableColumns,category,WhereClauseColumn,WhereClauseValue,conn,preStmt);
+        
+        String display = "%-30s%-30s\n";
+        
+        while(rs.next())
+        {
+            ArrayList<String> values = new ArrayList<String>();
+            for(String next : list)
+            {
+               String tmp = rs.getString(next);
+               values.add(tmp);
+            }
+            for(int j = 0; j < values.size(); j++)
+            {
+                
+                System.out.printf(display,dispNull(list.get(j)),dispNull(values.get(j)));
+            }
+        }
     }
     
     /* handles user input within a given max range*/
@@ -189,7 +212,8 @@ public class JDBCAH {
             boolean end = false;
             
             Scanner reader = new Scanner(System.in);
-            while(!end){
+            while(!end)
+            {
                 int choice = -1;
                 System.out.println("Please choose from the following options by entering the corresponding number \n"
                     + "0. Exit\n"
@@ -205,7 +229,7 @@ public class JDBCAH {
                 
                 choice = getInputWithinRange("Enter a number from 0 - 9: ", reader, 0, 9);
 
-                boolean end = false
+                boolean stop = false;
                 switch(choice)
                 {
                     //exits
@@ -227,48 +251,20 @@ public class JDBCAH {
                     {
                         System.out.print("Please enter a group name you want shown: ");
                         String gn = reader.nextLine();
-                      
-                        ResultSet rs = performWhereQuery("groupName, headWriter, yearFormed,subject", "writingGroup","groupName",gn,conn,preStmt);
-
-                        //STEP 5: Extract data from result set
                         String groupDisplayFormat = displayFormat;
                         groupDisplayFormat = groupDisplayFormat.replaceAll("30", "35");
-                        System.out.printf(groupDisplayFormat, "Group Name", "Head Writer", "Year Formed", "Subject");
-                        while (rs.next()) 
-                        {
-                            //Retrieve by column name
-                            String cGroupName = rs.getString("groupName");
-                            String cHeadWriter = rs.getString("headWriter");
-                            String cYearFormed = rs.getString("yearFormed");
-                            String cSubject = rs.getString("subject");
-                            
-                                // Display values
-                            System.out.printf(groupDisplayFormat,
-                                    dispNull(cGroupName), dispNull(cHeadWriter), 
-                                    dispNull(cYearFormed), dispNull(cSubject));
-                        }
+                        
+                        listalldata("writingGroup", "groupName,headWriter,yearFormed,subject",conn, 
+                            preStmt,"groupName",gn,groupDisplayFormat);
                         
                         System.out.println("\nCorresponding books that " + gn + " wrote include: \n"); 
-                        ResultSet bookdata = performWhereQuery("bookTitle, groupName, pubName, yearPublished, numberPages",
-                                "book", "groupName", gn, conn, preStmt);
                         
-                        // Extract data from book result set
                         String bookDisplayFormat = "%-30s" + displayFormat;
                         bookDisplayFormat = bookDisplayFormat.replace("30", "35");
-                        System.out.printf(bookDisplayFormat, "Book Title", "Group Name","Publisher Name", 
-                                "Year Published", "Number Pages");
-                        while (bookdata.next()) {
-                            // Retrieve by column name
-                            String bookTitle = bookdata.getString("bookTitle");
-                            String groupName = bookdata.getString("groupName");
-                            String publisherName = bookdata.getString("pubName");
-                            String yearPublished = bookdata.getString("yearPublished");
-                            String numberPages = bookdata.getString("numberPages");
-                            
-                            // display values
-                            System.out.printf(bookDisplayFormat, dispNull(bookTitle), dispNull(groupName), dispNull(publisherName), 
-                                    dispNull(yearPublished), dispNull(numberPages));
-                        }
+                        
+                        listalldata("book", "bookTitle,groupName,pubName,yearPublished,numberPages",conn, 
+                            preStmt,"groupName",gn,bookDisplayFormat);
+                        
                         break;
                     }
                     //List all publishers
@@ -284,49 +280,20 @@ public class JDBCAH {
                     {
                         System.out.print("Enter a publisher name: ");
                         String publisher = reader.nextLine();
-                        ResultSet rs = performWhereQuery("pubName,pubAddress, pubPhone, pubEmail", "publishers",
-                                "pubName", publisher, conn, preStmt);
-
-                        //STEP 5: Extract data from result set
+                        
                         String publisherDisplayFormat = displayFormat;
                         publisherDisplayFormat = publisherDisplayFormat.replaceAll("30", "40");
-                        System.out.printf(publisherDisplayFormat, "Publisher Name", "Publisher Address", 
-                                    "Publisher Phone", "Publisher Email");
-                        while (rs.next()) {
-                            //Retrieve by column name
-                            String cPublisherName = rs.getString("pubName");
-                            String cPublisherAddress = rs.getString("pubAddress");
-                            String cPublisherPhone = rs.getString("pubPhone");
-                            String cPublisherEmail = rs.getString("pubEmail");
-
-                                //Display values
-                            System.out.printf(publisherDisplayFormat,
-                                    dispNull(cPublisherName), dispNull(cPublisherAddress), 
-                                    dispNull(cPublisherPhone), dispNull(cPublisherEmail));
-                        }
+                        
+                        listalldata("publishers", "pubName,pubAddress,pubPhone,pubEmail",conn, 
+                            preStmt,"pubName",publisher,publisherDisplayFormat);
                         
                         System.out.println("\nCorresponding books that " + publisher + " published include: \n"); 
-                        ResultSet bookResults = performWhereQuery("bookTitle, groupName, pubName, yearPublished, numberPages", "book",
-                            "pubName", publisher, conn, preStmt);
                         
-                        // Extract data from book result set
                         String bookDisplayFormat = "%-30s" + displayFormat;
                         bookDisplayFormat = bookDisplayFormat.replace("30", "40");
-                        System.out.printf(bookDisplayFormat, "Book Title", "Group Name","Publisher Name", 
-                                "Year Published", "Number Pages");
-                        while (bookResults.next()) {
-                            // Retrieve by column name
-                            String bookTitle = bookResults.getString("bookTitle");
-                            String groupName = bookResults.getString("groupName");
-                            String pubName = bookResults.getString("pubName");
-                            String yearPublished = bookResults.getString("yearPublished");
-                            String numberPages = bookResults.getString("numberPages");
-                            
-                            // display values
-                            System.out.printf(bookDisplayFormat, dispNull(bookTitle), dispNull(groupName), dispNull(pubName), 
-                                    dispNull(yearPublished), dispNull(numberPages));
-                        }
-
+                        
+                        listalldata("book", "bookTitle,groupName,pubName,yearPublished,numberPages",conn, 
+                            preStmt,"pubName",publisher,bookDisplayFormat);
                         break;
                     }
                     //List all book titles (Titles Only)
@@ -344,6 +311,7 @@ public class JDBCAH {
                         System.out.print("Enter a book title: ");
                         String bookTitle = reader.nextLine();
                         
+                        String bookdisplayFormat = "%-40s%-40s%-40s%-40s%-40s%-40s%-40s%-40s%-40s%-40s%-40s\n";
                         System.out.println("Creating statement...\n");
 
                         String sql;
@@ -576,8 +544,6 @@ public class JDBCAH {
                 
                 System.out.println("\n\n");
             }
-            
-            //STEP 6: Clean-up environment
             
             stmt.close();
             conn.close();
